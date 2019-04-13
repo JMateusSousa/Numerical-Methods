@@ -45,10 +45,7 @@ char determina(double **matriz, int limite) {
     int i, j; 
     double sum; 
     char result = 0;
-
-      
-    // flag == 2 for infinite solution 
-    // flag == 3 for No solution  
+    
     for (i = 0; i < limite; i++)  
     { 
         sum = 0; 
