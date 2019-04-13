@@ -6,12 +6,12 @@ double** alocaMatriz(int limite);
 void imprimeMatriz (double** matriz, int limite);
 void leMatriz(double** matriz, int limite, FILE* file);
 char metodoJordan(double** matriz, int limite);
-char determina(double **matriz, int limite);
+char determina(double **matriz, int limite);        // DETERMINA SE É INCOMPATÍVEL OU COMPATÍVEL INDETERMINADO
 void mostraSolucao(double **matriz, int limite);
 
 
 int main(){
-    char fileName[100], i, result = 0;
+    char fileName[100], i, result = 2;
     int limite;
     FILE *file;
     double **matrizA;
@@ -25,26 +25,23 @@ int main(){
         return 0;
     }
 
-    fscanf(file, "%d", &limite);
+    fscanf(file, "%d", &limite);                    //     LENDO A DIMENSÃO DA MATRIZ (LIMITE X LIMITE)
     matrizA = alocaMatriz(limite);
     leMatriz(matrizA, limite, file);
     fclose(file);
     printf("===== Matriz de Entrada =====\n");
     imprimeMatriz(matrizA, limite);
-    result = metodoJordan(matrizA, limite);
-    if (result == 0){
-        result = determina(matrizA, limite);
-        if(result == 0)
-		    printf("SL INCOMPATIVEL \n");
-        else{
-             printf("SL COMPATIVEL INDETERMINADO --> ");
-             printf("Uma possivel solucao para esse sistema: ");
-             mostraSolucao(matrizA, limite);
-             printf("\n\n\n");
+    result = metodoJordan(matrizA, limite);         //      RETORNO DO TIPO DO SISTEMA ADQUIRIDO
+    if (result == 0)
+		printf("SL INCOMPATIVEL \n");
+    else if(result == 1){
+        printf("SL COMPATIVEL INDETERMINADO --> ");
+        printf("Uma possivel solucao para esse sistema: ");
+        mostraSolucao(matrizA, limite);
+        printf("\n\n\n");
         }
-    }
-	else {
-		printf ("SL COMPATIVEL\n");
+	else{
+		printf ("SL COMPATIVEL DETERMINADO\n");
 		mostraSolucao(matrizA, limite);
 	}
 	return 0;
@@ -77,7 +74,7 @@ void mostraSolucao(double **matriz, int limite){
 }
 
 char metodoJordan(double **matriz, int limite){
-    char i, j, k, result = 1, troca;
+    char i, j, k, result = 2, troca, flag = 0;
     double mult, item;
 
     for(j = 0; j < limite; j++){
@@ -87,9 +84,9 @@ char metodoJordan(double **matriz, int limite){
                 troca++;
             if ((j + troca) == limite)  
             { 
-                result = 0;
                 for(i = 0; i< limite; i++)
                     matriz[i][j] = 0;
+                    flag = 1;
             }
             else{
                 for(i = j, k = 0; k < limite; k++){
@@ -112,6 +109,8 @@ char metodoJordan(double **matriz, int limite){
     }
     printf("===== Matriz Diagonal =====\n");
     imprimeMatriz(matriz, limite);
+    if(flag == 1)
+        result = determina(matriz, limite);
     return result;
 }
 
