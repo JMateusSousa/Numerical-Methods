@@ -1,19 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define EPSILON 0.000001
 
 double** alocaMatriz(int limite);
 void imprimeMatriz (double** matriz, int limite);
 void leMatriz(double** matriz, int limite, FILE* file);
-char metodoJordan(double** matriz, int limite, double x[]);
-char determina(double **matriz, int limite); 
+char metodoJordan(double** matriz, int limite);
+char determina(double **matriz, int limite);
+void mostraSolucao(double **matriz, int limite);
+
 
 int main(){
-    char fileName[100], i, result;
+    char fileName[100], i, result = 0;
     int limite;
     FILE *file;
-    double **matrizA, *x;
+    double **matrizA;
 
     printf("Escreva o nome do arquivo:");
     gets(fileName);
@@ -25,18 +26,26 @@ int main(){
     }
 
     fscanf(file, "%d", &limite);
-    x = malloc (sizeof(double) * limite);
     matrizA = alocaMatriz(limite);
     leMatriz(matrizA, limite, file);
     fclose(file);
+    printf("===== Matriz de Entrada =====\n");
     imprimeMatriz(matrizA, limite);
-    result = metodoJordan(matrizA, limite, x);
-    if (result == 0)
-		printf("SL INCOMPATIVEL \n");
+    result = metodoJordan(matrizA, limite);
+    if (result == 0){
+        result = determina(matrizA, limite);
+        if(result == 0)
+		    printf("SL INCOMPATIVEL \n");
+        else{
+             printf("SL COMPATIVEL INDETERMINADO --> ");
+             printf("Uma possivel solucao para esse sistema: ");
+             mostraSolucao(matrizA, limite);
+             printf("\n\n\n");
+        }
+    }
 	else {
-		printf ("SL %sDETERMINADO\n", result ? "IN":"");
-		for (i = 0; i < limite; i++)
-		    printf("x[%d]=%10.3lf ",i+1, x[i]);
+		printf ("SL COMPATIVEL\n");
+		mostraSolucao(matrizA, limite);
 	}
 	return 0;
 }
@@ -57,8 +66,18 @@ char determina(double **matriz, int limite) {
     return result; 
 } 
 
-char metodoJordan(double **matriz, int limite, double x[]){
-    char i, j, k, result, troca;
+void mostraSolucao(double **matriz, int limite){
+    char i;
+    for(i = 0; i < limite; i++){
+        if(matriz[i][i] == 0)
+           printf("x[%d] = %lf ", i+1, matriz[i][i]);
+        else
+            printf("x[%d] = %lf ", i+1, (matriz[i][limite] / matriz[i][i]));
+    }
+}
+
+char metodoJordan(double **matriz, int limite){
+    char i, j, k, result = 1, troca;
     double mult, item;
 
     for(j = 0; j < limite; j++){
@@ -68,19 +87,16 @@ char metodoJordan(double **matriz, int limite, double x[]){
                 troca++;
             if ((j + troca) == limite)  
             { 
-                if(determina(matriz, limite) == 0){
-                    return 0;
-                }
-                for(i = 0; i < limite; i++)
+                result = 0;
+                for(i = 0; i< limite; i++)
                     matriz[i][j] = 0;
-                imprimeMatriz(matriz, limite);
-            } 
-        }
-        else{
-            for(i = j, k = 0; k < limite; k++){
-                item = matriz[j][k];
-                matriz[j][k] = matriz[j][k + troca];
-                matriz[j][k + troca] = item;
+            }
+            else{
+                for(i = j, k = 0; k < limite; k++){
+                    item = matriz[j][k];
+                    matriz[i][k] = matriz[i][k + troca];
+                    matriz[i][k + troca] = item;
+                }
             }
         }
         for ( i = 0; i < limite; i++){
@@ -94,21 +110,16 @@ char metodoJordan(double **matriz, int limite, double x[]){
             }
         }
     }
+    printf("===== Matriz Diagonal =====\n");
     imprimeMatriz(matriz, limite);
-    for(i = 0; i < limite; i++){
-        if(matriz[i][i] == 0)
-            x[i] = 0;
-        else
-            x[i] =  matriz[i][limite] / matriz[i][i];
-    }
-    return 1;
+    return result;
 }
 
 void imprimeMatriz(double** matriz, int limite){
     char i, j;
     for (i = 0; i < limite; i++){
 		for (j = 0; j < limite; j++)
-			printf("%lf ", matriz[i][j]);
+			printf("%lf\t", matriz[i][j]);
 		printf("\n");
 	}
     printf("\n");
@@ -122,11 +133,8 @@ void leMatriz(double**matriz, int limite, FILE* file){
             fscanf(file, "%lf", &caracter);
             if((char)caracter == ' ')
                 j--;
-            else{
-                //printf("m[%d][%d]: ", i+1, j+1);
+            else
                 matriz[i][j] = caracter;
-                //printf("%lf\n", caracter);
-            }
 		}
 	}
 	
